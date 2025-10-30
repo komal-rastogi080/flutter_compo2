@@ -81,7 +81,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  bool _isExpanded = false;
+  bool _isExpanded = false; // assign value as false for desktop layout and true for app
 
   final List<String> _pageTitles = [
     "Dashboard",
@@ -219,6 +219,7 @@ class MyNavigationDrawer extends StatelessWidget {
       onDestinationSelected: onDestinationSelected,
       selectedIndex: selectedIndex,
       // --- Label settings ---
+      // This is the correct logic to fix the assertion error
       labelType: isExpanded
           ? NavigationRailLabelType.none
           : NavigationRailLabelType.selected,
@@ -241,9 +242,8 @@ class MyNavigationDrawer extends StatelessWidget {
       // --- Header: Logo + Toggle Button ---
       leading: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        // width: double.infinity, // <-- REMOVED: This was causing the RenderFlex overflow
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // <-- CHANGED
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // Group Logo and Text together in their own Row
             Row(
@@ -290,7 +290,6 @@ class MyNavigationDrawer extends StatelessWidget {
               ],
             ),
             // Toggle Button
-            // const Spacer(), // <-- REMOVED
             IconButton(
               icon: Icon(
                 isExpanded
@@ -342,7 +341,6 @@ class MyNavigationDrawer extends StatelessWidget {
   }
 
   // --- Helper to build custom destinations ---
-  // This is now much simpler and uses NavigationRailDestination as intended.
   NavigationRailDestination _buildNavDestination({
     required IconData icon,
     required String label,
@@ -369,7 +367,6 @@ class MyNavigationDrawer extends StatelessWidget {
         child: iconWidget,
       ),
       // Provide a separate selectedIcon if you want it to look different
-      // If not, the `selectedIconTheme` will handle it.
       selectedIcon: Tooltip(
         message: label,
         child: showBadge
@@ -436,7 +433,7 @@ class MyDrawer extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  "Clummo",
+                  "ProjectUI",
                   style: Theme.of(context)
                       .textTheme
                       .titleLarge
