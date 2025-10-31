@@ -1,13 +1,5 @@
 import 'package:flutter/material.dart';
-
-// --- Constants (copied from constants.dart for a single-file example) ---
-const Color kDarkScaffold = Color(0xFF1B1B1B);
-const Color kDarkCard = Color(0xFF282828);
-const Color kDarkSurface = Color(0xFF3B3B3B);
-const Color kLightScaffold = Color(0xFFF9F9F9);
-const Color kLightCard = Colors.white;
-const Color kLightSurface = Color(0xFFF0F0F0);
-// --- End Constants ---
+import 'constants.dart';
 
 void main() {
   runApp(const MyApp());
@@ -130,21 +122,28 @@ class _HomePageState extends State<HomePage> {
         return Scaffold(
           body: Row(
             children: [
-              MyNavigationDrawer(
-                isDarkMode: widget.isDarkMode,
-                toggleTheme: widget.toggleTheme,
-                isExpanded: _isExpanded,
-                selectedIndex: _selectedIndex,
-                onDestinationSelected: (index) {
+              MouseRegion(
+                onEnter: (event) {
                   setState(() {
-                    _selectedIndex = index;
+                    _isExpanded = true;
                   });
                 },
-                onToggleExpanded: () {
+                onExit: (event) {
                   setState(() {
-                    _isExpanded = !_isExpanded;
+                    _isExpanded = false;
                   });
                 },
+                child: MyNavigationDrawer(
+                  isDarkMode: widget.isDarkMode,
+                  toggleTheme: widget.toggleTheme,
+                  isExpanded: _isExpanded,
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: (index) {
+                    setState(() {
+                      _selectedIndex = index;
+                    });
+                  },
+                ),
               ),
               const VerticalDivider(width: 1),
               Expanded(
@@ -170,7 +169,8 @@ class MyNavigationDrawer extends StatelessWidget {
   final bool isExpanded;
   final int selectedIndex;
   final VoidCallback toggleTheme;
-  final VoidCallback onToggleExpanded;
+  // --- ⭐️ UPDATE 3: REMOVED onToggleExpanded ---
+  // final VoidCallback onToggleExpanded;
   final ValueChanged<int> onDestinationSelected;
 
   const MyNavigationDrawer({
@@ -179,7 +179,8 @@ class MyNavigationDrawer extends StatelessWidget {
     required this.isExpanded,
     required this.selectedIndex,
     required this.toggleTheme,
-    required this.onToggleExpanded,
+    // --- ⭐️ UPDATE 3: REMOVED onToggleExpanded ---
+    // required this.onToggleExpanded,
     required this.onDestinationSelected,
   }) : super(key: key);
 
@@ -189,11 +190,7 @@ class MyNavigationDrawer extends StatelessWidget {
     {'icon': Icons.article_rounded, 'label': 'Posts', 'isActive': true},
     {'icon': Icons.perm_media_rounded, 'label': 'Media'},
     {'icon': Icons.pages_rounded, 'label': 'Pages'},
-    {
-      'icon': Icons.comment_rounded,
-      'label': 'Comments',
-      'showBadge': true
-    },
+    {'icon': Icons.comment_rounded, 'label': 'Comments', 'showBadge': true},
     {'icon': Icons.palette_rounded, 'label': 'Appearance'},
     {'icon': Icons.extension_rounded, 'label': 'Plugins'},
     {'icon': Icons.people_rounded, 'label': 'Users'},
@@ -211,131 +208,146 @@ class MyNavigationDrawer extends StatelessWidget {
     final Color inactiveTextColor =
     isDarkMode ? Colors.grey[300]! : Colors.grey[700]!;
 
-    return NavigationRail(
-      minWidth: 80, // w-20 from Tailwind (80px)
-      minExtendedWidth: 256, // w-64 from Tailwind (256px)
-      backgroundColor: Theme.of(context).canvasColor,
-      extended: isExpanded,
-      onDestinationSelected: onDestinationSelected,
-      selectedIndex: selectedIndex,
-      // --- Label settings ---
-      // This is the correct logic to fix the assertion error
-      labelType: isExpanded
-          ? NavigationRailLabelType.none
-          : NavigationRailLabelType.selected,
+    // Use an AnimatedContainer to smoothly animate the width
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      width: isExpanded ? 256 : 80,
+      child: NavigationRail(
+        minWidth: 80, // w-20 from Tailwind (80px)
+        minExtendedWidth: 256, // w-64 from Tailwind (256px)
+        backgroundColor: Theme.of(context).canvasColor,
+        extended: isExpanded,
+        onDestinationSelected: onDestinationSelected,
+        selectedIndex: selectedIndex,
+        // --- Label settings ---
+        labelType: isExpanded
+            ? NavigationRailLabelType.none
+            : NavigationRailLabelType.selected,
 
-      // --- Use built-in styling ---
-      useIndicator: true,
-      indicatorColor: activeColor,
-      selectedIconTheme: IconThemeData(color: activeTextColor),
-      unselectedIconTheme: IconThemeData(color: inactiveTextColor),
-      selectedLabelTextStyle: TextStyle(
-        fontWeight: FontWeight.bold,
-        color: activeTextColor,
-      ),
-      unselectedLabelTextStyle: TextStyle(
-        fontWeight: FontWeight.w600,
-        color: inactiveTextColor,
-      ),
-      // --- End built-in styling ---
+        // --- Use built-in styling ---
+        useIndicator: true,
+        indicatorColor: activeColor,
 
-      // --- Header: Logo + Toggle Button ---
-      leading: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Group Logo and Text together in their own Row
-            Row(
-              children: [
-                // Logo
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.blur_on, color: Colors.white, size: 30),
-                  ),
-                ),
-                // App Name (animates in/out)
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SizeTransition(
-                        sizeFactor: animation,
-                        axis: Axis.horizontal,
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: isExpanded
-                      ? Padding(
-                    padding: const EdgeInsets.only(left: 12.0),
-                    child: Text(
-                      "ProjectUI",
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
+        // ---------------------------------------------------
+        // --- ⭐️ UPDATE 4: "FANCY" PILL SHAPE ---
+        // ---------------------------------------------------
+        indicatorShape: const StadiumBorder(),
+        // ---------------------------------------------------
+
+        selectedIconTheme: IconThemeData(color: activeTextColor),
+        unselectedIconTheme: IconThemeData(color: inactiveTextColor),
+        selectedLabelTextStyle: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: activeTextColor,
+        ),
+        unselectedLabelTextStyle: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: inactiveTextColor,
+        ),
+        // --- End built-in styling ---
+
+        // --- Header: Logo + Toggle Button ---
+        leading: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Group Logo and Text together in their own Row
+              Row(
+                children: [
+                  // Logo
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  )
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            ),
-            // Toggle Button
-            IconButton(
-              icon: Icon(
-                isExpanded
-                    ? Icons.keyboard_double_arrow_left_rounded
-                    : Icons.keyboard_double_arrow_right_rounded,
-                color: Colors.grey,
+                    child: const Center(
+                      child: Icon(Icons.blur_on, color: Colors.white, size: 30),
+                    ),
+                  ),
+                  // App Name (animates in/out)
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SizeTransition(
+                          sizeFactor: animation,
+                          axis: Axis.horizontal,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: isExpanded
+                        ? Padding(
+                      padding: const EdgeInsets.only(left: 12.0),
+                      child: Text(
+                        "ProjectUI",
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
               ),
-              onPressed: onToggleExpanded,
+              // ---------------------------------------------------
+              // --- ⭐️ UPDATE 5: REMOVED TOGGLE IconButton ---
+              // ---------------------------------------------------
+              // IconButton(
+              //   icon: Icon(
+              //     isExpanded
+              //         ? Icons.keyboard_double_arrow_left_rounded
+              //         : Icons.keyboard_double_arrow_right_rounded,
+              //     color: Colors.grey,
+              //   ),
+              //   onPressed: onToggleExpanded,
+              // ),
+              // ---------------------------------------------------
+            ],
+          ),
+        ),
+
+        // --- Navigation Items ---
+        destinations: _navItems.asMap().entries.map((entry) {
+          // int index = entry.key; // Not needed here, but good to know
+          Map<String, dynamic> item = entry.value;
+
+          return _buildNavDestination(
+            icon: item['icon'] as IconData,
+            label: item['label'] as String,
+            showBadge: item['showBadge'] ?? false,
+            badgeCount: "1",
+            isExpanded: isExpanded,
+          );
+        }).toList(),
+
+        // --- Bottom Section: Toggles + Logout ---
+        trailing: Column(
+          children: [
+            const Divider(height: 1),
+            _BottomNavTools(
+              isDarkMode: isDarkMode,
+              isExpanded: isExpanded,
+              toggleTheme: toggleTheme,
+            ),
+            _BottomNavTools(
+              icon: Icons.logout_rounded,
+              label: "Logout",
+              isDarkMode: isDarkMode,
+              isExpanded: isExpanded,
+              onTap: () {
+                // Handle logout
+              },
             ),
           ],
         ),
-      ),
-
-      // --- Navigation Items ---
-      destinations: _navItems.asMap().entries.map((entry) {
-        int index = entry.key;
-        Map<String, dynamic> item = entry.value;
-
-        return _buildNavDestination(
-          icon: item['icon'] as IconData,
-          label: item['label'] as String,
-          showBadge: item['showBadge'] ?? false,
-          badgeCount: "1",
-          isExpanded: isExpanded,
-        );
-      }).toList(),
-
-      // --- Bottom Section: Toggles + Logout ---
-      trailing: Column(
-        children: [
-          const Divider(height: 1),
-          _BottomNavTools(
-            isDarkMode: isDarkMode,
-            isExpanded: isExpanded,
-            toggleTheme: toggleTheme,
-          ),
-          _BottomNavTools(
-            icon: Icons.logout_rounded,
-            label: "Logout",
-            isDarkMode: isDarkMode,
-            isExpanded: isExpanded,
-            onTap: () {
-              // Handle logout
-            },
-          ),
-        ],
       ),
     );
   }
@@ -348,15 +360,23 @@ class MyNavigationDrawer extends StatelessWidget {
     String badgeCount = "0",
     bool isExpanded = true,
   }) {
+    // --- Base Icon (with badge) ---
     Widget iconWidget = Icon(icon); // Color is handled by theme
-
-    // Add badge if needed
     if (showBadge) {
       iconWidget = Badge(
         label: Text(badgeCount),
-        // When collapsed, show a dot. When expanded, show the count.
         isLabelVisible: isExpanded,
         child: iconWidget,
+      );
+    }
+
+    // --- Selected Icon (with badge) ---
+    Widget selectedIconWidget = Icon(icon); // Start fresh
+    if (showBadge) {
+      selectedIconWidget = Badge(
+        label: Text(badgeCount),
+        isLabelVisible: isExpanded,
+        child: selectedIconWidget,
       );
     }
 
@@ -366,17 +386,20 @@ class MyNavigationDrawer extends StatelessWidget {
         message: label,
         child: iconWidget,
       ),
-      // Provide a separate selectedIcon if you want it to look different
+
+      // ---------------------------------------------------
+      // --- ⭐️ UPDATE 6: "FANCY" ICON POP ---
+      // ---------------------------------------------------
+      // Provide a separate selectedIcon that is scaled up
       selectedIcon: Tooltip(
         message: label,
-        child: showBadge
-            ? Badge(
-          label: Text(badgeCount),
-          isLabelVisible: isExpanded,
-          child: Icon(icon), // Icon without explicit color
-        )
-            : Icon(icon),
+        child: Transform.scale(
+          scale: 1.2, // Make it 20% bigger
+          child: selectedIconWidget,
+        ),
       ),
+      // ---------------------------------------------------
+
       // We just provide the Text widget for the label.
       label: Text(label),
       // Add padding to align text
@@ -387,6 +410,7 @@ class MyNavigationDrawer extends StatelessWidget {
 
 // 4. --- Mobile Drawer ---
 // This is the slide-out menu for small screens
+// (No changes needed here)
 class MyDrawer extends StatelessWidget {
   final bool isDarkMode;
   final VoidCallback toggleTheme;
@@ -501,6 +525,7 @@ class MyDrawer extends StatelessWidget {
 
 // 5. --- Reusable Bottom Tools ---
 // This is the "Light Mode" / "Logout" widget
+// (No changes needed here)
 class _BottomNavTools extends StatelessWidget {
   final bool isDarkMode;
   final bool isExpanded;
@@ -553,8 +578,8 @@ class _BottomNavTools extends StatelessWidget {
             const SizedBox(width: 16),
             Text(
               currentLabel,
-              style:
-              const TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                  color: Colors.grey, fontWeight: FontWeight.w600),
             ),
             const Spacer(),
             if (isThemeToggle)
@@ -571,4 +596,3 @@ class _BottomNavTools extends StatelessWidget {
     );
   }
 }
-

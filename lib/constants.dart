@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-const kDarkBg = Color(0xFF1a202c); // A slightly blue-dark
-const kLightBg = Colors.white;
-const kActiveColorLight = Color(0xFFe0f2fe); // light-blue-100
-const kActiveTextColorLight = Color(0xFF0c4a6e); // cyan-800
-const kActiveColorDark = Color(0xFF1e293b); // slate-800
-const kActiveTextColorDark = Color(0xFFe0f2fe); // light-blue-100
-const kLogoutBgLight = Color(0xFFf1f5f9); // slate-100
-const kLogoutBgDark = Color(0xFF334155); // slate-700
+const Color kDarkScaffold = Color(0xFF1B1B1B);
+const Color kDarkCard = Color(0xFF282828);
+const Color kDarkSurface = Color(0xFF3B3B3B);
+const Color kLightScaffold = Color(0xFFF9F9F9);
+const Color kLightCard = Colors.white;
+const Color kLightSurface = Color(0xFFF0F0F0);
